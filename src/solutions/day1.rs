@@ -1,4 +1,6 @@
-use itertools::Itertools;
+use anyhow::Result;
+
+use super::Solution;
 
 /// Advent of Code 2023 Day 1
 /// --- Day 1: Trebuchet?! ---
@@ -67,102 +69,56 @@ fn part2(input: &str) -> u32 {
 
     fn find_pattern(mut range: impl Iterator<Item = usize>, line: &str) -> Option<u32> {
         range.find_map(|i| {
+            let window = &line[i..];
             DIGITS
                 .iter()
                 .enumerate()
-                .find(|(_, &word)| line[i..].starts_with(word))
+                .find(|(_, &word)| window.starts_with(word))
                 .map(|(index, _)| index as u32 + 1)
-                .or_else(|| line.chars().next().unwrap().to_digit(10))
+                .or_else(|| window.chars().next().and_then(|v| v.to_digit(10)))
         })
     }
 
-    fn parse_line(line: &str) -> u32 {
-        // let mut digits = vec![];
-        // let mut start = 0;
-        // let mut debug_line = String::new();
-
-        // let mut chars = line.chars().peekable();
-
-        // while let Some(token) = chars.next() {
-        //     if token.is_numeric() {
-        //         debug_line.push_str(&format!("[{token}] "));
-        //         digits.push(token);
-        //         continue;
-        //     } else if token.is_alphabetic() {
-        //         let mut word = String::new();
-        //         word.push(token);
-        //         if DIGITS.iter().any(|d| d.starts_with(&word)) {
-        //             while let Some(token) = chars.peek() {
-        //                 word.push(*token);
-        //                 if token.is_alphabetic() && DIGITS.iter().any(|d| d.starts_with(&word)) {
-        //                     chars.next();
-        //                     if let Some(digit) = check(&word) {
-        //                         debug_line.push_str(&format!("[{word}={digit}] "));
-        //                         digits.push(digit);
-        //                         break;
-        //                     }
-        //                 } else {
-        //                     break;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+    fn parse_line(line: &str) -> Option<u32> {
         let range = 0..line.len();
-        let first = find_pattern(range.clone(), line).unwrap();
-        let last = find_pattern(range.rev(), line).unwrap();
+        let first = find_pattern(range.clone(), line)?;
+        let last = find_pattern(range.rev(), line)?;
 
-        // for (i, c) in line.chars().enumerate() {
-        //     if c.is_numeric() {
-        //         debug_line.push_str(&format!("[{c}] "));
-        //         digits.push(c);
-        //         start = i + 1;
-        //         continue;
-        //     }
-
-        //     if c.is_alphabetic() {
-        //         let word = &line[start..=i];
-        //         if DIGITS.iter().any(|d| d.starts_with(word)) {
-        //             if let Some(digit) = check(word) {
-        //                 debug_line.push_str(&format!("[{word}={digit}] "));
-        //                 digits.push(digit);
-        //                 start = i + 1;
-        //             }
-        //         } else {
-        //             start = i;
-        //         }
-        //     }
-        // }
-        // let first = digits.first().and_then(|v| v.to_digit(10)).unwrap();
-        // let last = digits.last().and_then(|v| v.to_digit(10)).unwrap();
         let value = 10 * first + last;
         println!("{value} => {line}");
-        // println!("{value} -> {debug_line} => {line} <- {value}");
-        value
+        Some(value)
     }
 
-    input.lines().map(parse_line).sum()
+    input.lines().filter_map(parse_line).sum()
 }
 
-fn main() {
-    let input = include_str!("../../inputs/day1.txt");
-    // println!("Part 1: {:?}", part1(input));
-    println!("Part 2: {:?}", part2(input));
+pub struct Day1;
+
+impl Solution for Day1 {
+    fn solve_part1(input: &str) -> Result<String> {
+        Ok(part1(input).to_string())
+    }
+
+    fn solve_part2(input: &str) -> Result<String> {
+        Ok(part2(input).to_string())
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::solutions::read_sample_input;
+
     use super::*;
 
     #[test]
     fn test_part1() {
-        let input = include_str!("../../inputs/day1_sample_p1.txt");
-        assert_eq!(part1(input), 142);
+        let input = read_sample_input(1, 1);
+        assert_eq!(part1(&input), 142);
     }
 
     #[test]
     fn test_part2() {
-        let input = include_str!("../../inputs/day1_sample_p2.txt");
-        assert_eq!(part2(input), 281);
+        let input = read_sample_input(1, 2);
+        assert_eq!(part2(&input), 281);
     }
 }
