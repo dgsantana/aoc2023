@@ -245,42 +245,17 @@ fn part2(input: &str) -> u32 {
     let gears = gears
         .iter_mut()
         .filter_map(|gear| {
-            for point in gear.possible_index.iter() {
-                for number in numbers.iter() {
-                    if number.range.contains(point) && !gear.numbers.contains(number) {
+            for number in numbers.iter() {
+                for points in gear.possible_index.iter() {
+                    if number.range.contains(points) {
                         gear.numbers.push(number.clone());
-                        break;
-                    }
-                    if gear.numbers.len() == 2 {
                         break;
                     }
                 }
             }
-            // for number in numbers.iter() {
-            //     for points in gear.possible_index.iter() {
-            //         if number.range.contains(points) {
-            //             gear.numbers.push(number.clone());
-            //             break;
-            //         }
-            //     }
-            // }
             if gear.numbers.len() == 2 {
-                // Special case where the gear is on the same line
-                // let all_inline =
-                //     gear.numbers[0].y == gear.numbers[1].y && gear.position.1 != gear.numbers[0].y;
-                // let first =
-                //     gear.numbers[0].y == gear.position.1 && gear.numbers[0].y != gear.numbers[1].y;
-                // let second =
-                //     gear.numbers[1].y == gear.position.1 && gear.numbers[0].y != gear.numbers[1].y;
-                // if all_inline || first {
-                //     None
-                // } else if second {
-                //     println!("gear: {:?}", gear);
-                //     None
-                // } else {
                 gear.product = gear.numbers.iter().map(|v| v.value).product::<u32>();
                 Some(gear)
-                // }
             } else {
                 None
             }
