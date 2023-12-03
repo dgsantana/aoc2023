@@ -54,7 +54,6 @@ use super::Solution;
 
 const CUBES: [u32; 3] = [12, 13, 14];
 const CUBES_NAMES: [&str; 3] = ["red", "green", "blue"];
-const TOTAL_CUBES: u32 = 39;
 
 fn part1(input: &str) -> u32 {
     let mut possible_games = Vec::new();
