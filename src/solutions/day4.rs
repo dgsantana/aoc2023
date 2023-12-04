@@ -64,12 +64,17 @@ use super::Solution;
 /// Take a seat in the large pile of colorful cards. How many points are they
 /// worth in total?
 fn part1(input: &str) -> u32 {
+    let start = std::time::Instant::now();
     let mut cards = parse_cards(input);
     for card in cards.iter_mut() {
         if card.matches > 0 {
             card.points = 1_u32 << (card.matches - 1);
         }
     }
+    let result = cards.iter().map(|c| c.points).sum();
+    let duration = start.elapsed();
+    println!("Part 1 took {:?}", duration);
+
     // Visualize the cards
     let gold = Style::new().bright().yellow().bold();
     let red = Style::new().red().bold();
@@ -90,7 +95,7 @@ fn part1(input: &str) -> u32 {
         }
         println!("=> {}", card.points);
     }
-    cards.iter().map(|c| c.points).sum()
+    result
 }
 
 /// --- Part Two ---
@@ -144,6 +149,7 @@ fn part1(input: &str) -> u32 {
 /// scratchcards are won. Including the original set of scratchcards, how many
 /// total scratchcards do you end up with?
 fn part2(input: &str) -> u32 {
+    let start = std::time::Instant::now();
     let cards = parse_cards(input);
     let number_of_cards = cards.len();
     let mut card_copies = vec![1_u32; number_of_cards];
@@ -161,6 +167,9 @@ fn part2(input: &str) -> u32 {
                 .for_each(|c| *c += copies);
         }
     }
+    let result = card_copies.iter().sum();
+    let duration = start.elapsed();
+    println!("Part 2 took {:?}", duration);
 
     // Visualize the cards
     let gold = Style::new().bright().yellow().bold();
@@ -182,7 +191,7 @@ fn part2(input: &str) -> u32 {
         }
         println!("=> Copies {}", card_copies[i]);
     }
-    card_copies.iter().sum()
+    result
 }
 
 fn parse_cards(input: &str) -> Vec<Card> {
