@@ -153,19 +153,17 @@ fn part2(input: &str) -> u32 {
     let cards = parse_cards(input);
     let number_of_cards = cards.len();
     let mut card_copies = vec![1_u32; number_of_cards];
-    for (i, card) in cards.iter().enumerate() {
-        if card.matches > 0 {
-            let index_start = i + 1;
-            let index_end = (i + card.matches).min(number_of_cards - 1);
-            let copies = card_copies[i];
-            if index_start >= number_of_cards {
-                eprintln!("No more cards to copy");
-                continue;
-            }
-            card_copies[index_start..=index_end]
-                .iter_mut()
-                .for_each(|c| *c += copies);
+    for (i, card) in cards.iter().enumerate().filter(|(_, c)| c.matches > 0) {
+        let index_start = i + 1;
+        if index_start >= number_of_cards {
+            eprintln!("No more cards to copy");
+            continue;
         }
+        let index_end = (i + card.matches).min(number_of_cards - 1);
+        let copies = card_copies[i];
+        card_copies[index_start..=index_end]
+            .iter_mut()
+            .for_each(|c| *c += copies);
     }
     let result = card_copies.iter().sum();
     let duration = start.elapsed();
