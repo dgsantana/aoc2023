@@ -65,8 +65,8 @@ fn part1(input: &str) -> u32 {
     let width = input.lines().next().unwrap().len() as i32;
     let input = input
         .lines()
-        .flat_map(|line| line.chars())
-        .collect::<String>();
+        .flat_map(|line| line.as_bytes())
+        .collect::<Vec<_>>();
     let mut numbers: Vec<u32> = Vec::new();
 
     for y in 0..height {
@@ -74,22 +74,22 @@ fn part1(input: &str) -> u32 {
         let mut near_symbol = false;
         for x in 0..width {
             let i = (y * height + x) as usize;
-            let Some(c) = input.chars().nth(i) else {
+            let Some(&c) = input.get(i) else {
                 continue;
             };
-            if c == '.' {
+            if *c == b'.' {
                 if near_symbol && !numbers_in_line.is_empty() {
                     build_number(&numbers_in_line, &mut numbers);
                 }
                 numbers_in_line.clear();
                 near_symbol = false;
-            } else if SYMBOLS.contains(c) {
+            } else if SYMBOLS.contains(*c as char) {
                 if !numbers_in_line.is_empty() {
                     build_number(&numbers_in_line, &mut numbers);
                 }
                 numbers_in_line.clear();
             } else if c.is_ascii_digit() {
-                numbers_in_line.push(c.to_digit(10).unwrap());
+                numbers_in_line.push((c - b'0') as u32);
                 if !near_symbol && search_symbol(x, y, &input, height) {
                     near_symbol = true;
                 }
@@ -102,15 +102,14 @@ fn part1(input: &str) -> u32 {
     numbers.iter().sum()
 }
 
-fn search_symbol(x: i32, y: i32, input: &str, height: i32) -> bool {
+fn search_symbol(x: i32, y: i32, input: &[&u8], height: i32) -> bool {
     let (x, y) = (x, y);
-    let input = input.as_bytes();
     DIRECTIONS
         .iter()
         .map(|(dx, dy)| (x + dx, y + dy))
         .map(|(nx, ny)| (ny * height + nx) as usize)
         .filter_map(|i| input.get(i))
-        .filter(|&c| SYMBOLS.contains(*c as char))
+        .filter(|&&c| SYMBOLS.contains(*c as char))
         .count()
         > 0
 }
@@ -263,6 +262,7 @@ fn part2(input: &str) -> u32 {
         .collect::<Vec<_>>();
 
     let result = gears.iter().map(|g| g.product).sum::<u32>();
+
     if cfg!(feature = "visualize") {
         let gear = Style::new().red().bold().apply_to("*");
         let gold = Style::new().bright().yellow().bold();
