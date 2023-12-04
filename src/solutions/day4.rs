@@ -72,7 +72,7 @@ fn part1(input: &str) -> u32 {
                 if card.points == 0 {
                     card.points = 1;
                 } else {
-                    card.points *= 2;
+                    card.points <<= 1;
                 }
             }
         }
