@@ -3,7 +3,32 @@ name = "aoc2023"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+default = []
+visualize = []
+
 [dependencies]
 anyhow = "1.0"
 console = "0.15"
+crossterm = "0.27"
 itertools = "0.12"
+ratatui = "0.24"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "day1"
+harness = false
+
+[[bench]]
+name = "day2"
+harness = false
+
+[[bench]]
+name = "day3"
+harness = false
+
+[[bench]]
+name = "day4"
+harness = false

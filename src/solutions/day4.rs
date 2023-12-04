@@ -76,24 +76,26 @@ fn part1(input: &str) -> u32 {
     println!("Part 1 took {:?}", duration);
 
     // Visualize the cards
-    let gold = Style::new().bright().yellow().bold();
-    let red = Style::new().red().bold();
-    let green = Style::new().green().bold();
+    if cfg!(feature = "visualize") {
+        let gold = Style::new().bright().yellow().bold();
+        let red = Style::new().red().bold();
+        let green = Style::new().green().bold();
 
-    for card in cards.iter() {
-        print!("Card {:03}: ", card.number);
-        for number in &card.winning_numbers {
-            print!("{:02} ", gold.apply_to(number));
-        }
-        print!("| ");
-        for number in &card.numbers {
-            if card.winning_numbers.contains(number) {
-                print!("{:02} ", green.apply_to(number));
-            } else {
-                print!("{:02} ", red.apply_to(number));
+        for card in cards.iter() {
+            print!("Card {:03}: ", card.number);
+            for number in &card.winning_numbers {
+                print!("{:02} ", gold.apply_to(number));
             }
+            print!("| ");
+            for number in &card.numbers {
+                if card.winning_numbers.contains(number) {
+                    print!("{:02} ", green.apply_to(number));
+                } else {
+                    print!("{:02} ", red.apply_to(number));
+                }
+            }
+            println!("=> {}", card.points);
         }
-        println!("=> {}", card.points);
     }
     result
 }
@@ -157,7 +159,7 @@ fn part2(input: &str) -> u32 {
         let index_start = i + 1;
         if index_start >= number_of_cards {
             eprintln!("No more cards to copy");
-            continue;
+            break;
         }
         let index_end = (i + card.matches).min(number_of_cards - 1);
         let copies = card_copies[i];
@@ -170,24 +172,26 @@ fn part2(input: &str) -> u32 {
     println!("Part 2 took {:?}", duration);
 
     // Visualize the cards
-    let gold = Style::new().bright().yellow().bold();
-    let red = Style::new().red().bold();
-    let green = Style::new().green().bold();
+    if cfg!(feature = "visualize") {
+        let gold = Style::new().bright().yellow().bold();
+        let red = Style::new().red().bold();
+        let green = Style::new().green().bold();
 
-    for (i, card) in cards.iter().enumerate() {
-        print!("Card {:03}: ", card.number);
-        for number in &card.winning_numbers {
-            print!("{:02} ", gold.apply_to(number));
-        }
-        print!("| ");
-        for number in &card.numbers {
-            if card.winning_numbers.contains(number) {
-                print!("{:02} ", green.apply_to(number));
-            } else {
-                print!("{:02} ", red.apply_to(number));
+        for (i, card) in cards.iter().enumerate() {
+            print!("Card {:03}: ", card.number);
+            for number in &card.winning_numbers {
+                print!("{:02} ", gold.apply_to(number));
             }
+            print!("| ");
+            for number in &card.numbers {
+                if card.winning_numbers.contains(number) {
+                    print!("{:02} ", green.apply_to(number));
+                } else {
+                    print!("{:02} ", red.apply_to(number));
+                }
+            }
+            println!("=> Copies {}", card_copies[i]);
         }
-        println!("=> Copies {}", card_copies[i]);
     }
     result
 }

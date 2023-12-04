@@ -1,8 +1,13 @@
-mod solutions;
+use aoc2023::*;
 
-use solutions::*;
+// use std::io::stdout;
 
-fn main() {
+// use crossterm::{
+//     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+//     ExecutableCommand,
+// };
+
+fn main() -> anyhow::Result<()> {
     let args: Vec<String> = std::env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: cargo run -- <day> <part>");
@@ -21,6 +26,10 @@ fn main() {
         eprintln!("Invalid part argument: {}", part);
         std::process::exit(1);
     }
+
+    // Setup cross-term
+    // stdout().execute(EnterAlternateScreen)?;
+    // enable_raw_mode()?;
 
     let input = read_data(day);
 
@@ -200,4 +209,7 @@ fn main() {
         };
         println!("{:?}", result);
     }
+    // stdout().execute(LeaveAlternateScreen)?;
+    // disable_raw_mode()?;
+    Ok(())
 }

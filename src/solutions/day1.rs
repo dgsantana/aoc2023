@@ -85,7 +85,9 @@ fn part2(input: &str) -> u32 {
         let last = find_pattern(range.rev(), line)?;
 
         let value = 10 * first + last;
-        println!("{value} => {line}");
+        if cfg!(feature = "visualize") {
+            println!("{value} => {line}");
+        }
         Some(value)
     }
 

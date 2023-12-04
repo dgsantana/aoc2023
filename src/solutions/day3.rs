@@ -263,49 +263,51 @@ fn part2(input: &str) -> u32 {
         .collect::<Vec<_>>();
 
     let result = gears.iter().map(|g| g.product).sum::<u32>();
-    let gear = Style::new().red().bold().apply_to("*");
-    let gold = Style::new().bright().yellow().bold();
-    let gray = Style::new().red().bold();
-    for (i, &c) in input.iter().enumerate() {
-        if i % width == 0 {
-            print!(" ");
-            let y = i / height;
-            if y > 0 {
-                let sum = gears
-                    .iter()
-                    .filter(|g| g.position.1 == y - 1)
-                    .map(|v| v.numbers[0].value * v.numbers[1].value)
-                    .sum::<u32>();
-                let sum_parts: String = gears
-                    .iter()
-                    .filter(|g| g.position.1 == y - 1)
-                    .map(|g| format!("{}*{}", g.numbers[0].value, g.numbers[1].value))
-                    .join("+");
-                if sum > 0 {
-                    print!("{} = {}", sum, sum_parts);
+    if cfg!(feature = "visualize") {
+        let gear = Style::new().red().bold().apply_to("*");
+        let gold = Style::new().bright().yellow().bold();
+        let gray = Style::new().red().bold();
+        for (i, &c) in input.iter().enumerate() {
+            if i % width == 0 {
+                print!(" ");
+                let y = i / height;
+                if y > 0 {
+                    let sum = gears
+                        .iter()
+                        .filter(|g| g.position.1 == y - 1)
+                        .map(|v| v.numbers[0].value * v.numbers[1].value)
+                        .sum::<u32>();
+                    let sum_parts: String = gears
+                        .iter()
+                        .filter(|g| g.position.1 == y - 1)
+                        .map(|g| format!("{}*{}", g.numbers[0].value, g.numbers[1].value))
+                        .join("+");
+                    if sum > 0 {
+                        print!("{} = {}", sum, sum_parts);
+                    }
                 }
+                println!();
             }
-            println!();
-        }
-        if gears
-            .iter()
-            .any(|g| g.position.0 == i % width && g.position.1 == i / height)
-            || gears
+            if gears
                 .iter()
-                .any(|g| g.numbers.iter().any(|n| n.range.contains(&i)))
-        {
-            print!("{}", gold.apply_to(*c as char));
-        } else if *c == b'*' {
-            print!("{}", gear);
-        } else if SYMBOLS.contains(*c as char) || *c == b'.' {
-            print!(" ");
-        } else if c.is_ascii_digit() {
-            print!("{}", gray.apply_to(*c as char));
-        } else {
-            print!("{}", *c as char);
+                .any(|g| g.position.0 == i % width && g.position.1 == i / height)
+                || gears
+                    .iter()
+                    .any(|g| g.numbers.iter().any(|n| n.range.contains(&i)))
+            {
+                print!("{}", gold.apply_to(*c as char));
+            } else if *c == b'*' {
+                print!("{}", gear);
+            } else if SYMBOLS.contains(*c as char) || *c == b'.' {
+                print!(" ");
+            } else if c.is_ascii_digit() {
+                print!("{}", gray.apply_to(*c as char));
+            } else {
+                print!("{}", *c as char);
+            }
         }
+        println!();
     }
-    println!();
     result
 }
 

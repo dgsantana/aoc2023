@@ -89,7 +89,6 @@ fn part1(input: &str) -> u32 {
                 continue;
             }
         };
-        println!("Game {}", game);
         let line = line.trim();
         let game_sets = line.split(';');
 
@@ -97,7 +96,8 @@ fn part1(input: &str) -> u32 {
             possible_games.push(game);
         }
     }
-    possible_games.iter().sum()
+    let result = possible_games.iter().sum();
+    result
 }
 
 /// --- Part Two ---
@@ -153,27 +153,12 @@ fn part2(input: &str) -> u32 {
         min_cubes.iter().product()
     }
 
-    for (id, game_line) in input.lines().enumerate() {
-        let Some((game, line)) = game_line.split_once(':') else {
+    for game_line in input.lines() {
+        let Some((_game, line)) = game_line.split_once(':') else {
             continue;
-        };
-        let game = {
-            if !game.starts_with("Game ") {
-                continue;
-            }
-            let game = game[5..].trim();
-            if let Ok(game) = game.parse::<u32>() {
-                if game != id as u32 + 1 {
-                    continue;
-                }
-                game
-            } else {
-                continue;
-            }
         };
         let line = line.trim();
         let min_power_of_game_set = min_power_of_game_set(line);
-        println!("Game {} -> {}", game, min_power_of_game_set);
         power_sum += min_power_of_game_set;
     }
     power_sum
