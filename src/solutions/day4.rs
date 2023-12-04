@@ -160,6 +160,7 @@ fn part2(input: &str) -> u32 {
             let index_end = (i + card.matches).min(number_of_cards - 1);
             let copies = card_copies[i];
             if index_start >= number_of_cards {
+                eprintln!("No more cards to copy");
                 continue;
             }
             card_copies[index_start..=index_end]
@@ -167,7 +168,7 @@ fn part2(input: &str) -> u32 {
                 .for_each(|c| *c += copies);
         }
     }
-    
+
     // Visualize the cards
     let gold = Style::new().bright().yellow().bold();
     let red = Style::new().red().bold();
