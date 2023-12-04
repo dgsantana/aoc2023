@@ -189,32 +189,32 @@ fn parse_cards(input: &str) -> Vec<Card> {
     input
         .lines()
         .enumerate()
-        .map(|(i, line)| {
+        .filter_map(|(i, line)| {
             let number = (i + 1) as u32;
-            let mut parts = line.split(" | ");
-            let winning_numbers = parts
-                .next()
-                .unwrap()
+            let (winning_part, numbers_part) = line.split_once(" | ")?;
+
+            let winning_numbers = winning_part
                 .split_ascii_whitespace()
                 .filter_map(|n| n.parse().ok())
                 .collect::<Vec<u32>>();
-            let numbers = parts
-                .next()
-                .unwrap()
+
+            let numbers = numbers_part
                 .split_ascii_whitespace()
                 .filter_map(|n| n.parse().ok())
                 .collect::<Vec<u32>>();
+
             let matches = numbers
                 .iter()
                 .filter(|n| winning_numbers.contains(n))
                 .count();
-            Card {
+
+            Some(Card {
                 number,
                 winning_numbers,
                 numbers,
                 matches,
                 points: 0,
-            }
+            })
         })
         .collect()
 }
