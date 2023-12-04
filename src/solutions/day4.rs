@@ -66,15 +66,8 @@ use super::Solution;
 fn part1(input: &str) -> u32 {
     let mut cards = parse_cards(input);
     for card in cards.iter_mut() {
-        card.points = 0;
-        for number in &card.numbers {
-            if card.winning_numbers.contains(number) {
-                if card.points == 0 {
-                    card.points = 1;
-                } else {
-                    card.points <<= 1;
-                }
-            }
+        if card.matches > 0 {
+            card.points = 1_u32 << (card.matches - 1);
         }
     }
     // Visualize the cards
@@ -204,19 +197,17 @@ fn parse_cards(input: &str) -> Vec<Card> {
                 .unwrap()
                 .split_ascii_whitespace()
                 .filter_map(|n| n.parse().ok())
-                .collect::<Vec<_>>();
+                .collect::<Vec<u32>>();
             let numbers = parts
                 .next()
                 .unwrap()
                 .split_ascii_whitespace()
                 .filter_map(|n| n.parse().ok())
-                .collect::<Vec<_>>();
-            let mut matches = 0;
-            for number in &numbers {
-                if winning_numbers.contains(number) {
-                    matches += 1;
-                }
-            }
+                .collect::<Vec<u32>>();
+            let matches = numbers
+                .iter()
+                .filter(|n| winning_numbers.contains(n))
+                .count();
             Card {
                 number,
                 winning_numbers,
