@@ -509,8 +509,26 @@ fn source_to_target_ranges(range: Range<u64>, source2targets: &[MapRange]) -> Ve
     }
     if ranges.is_empty() {
         ranges.push(range);
+    } else {
+        ranges = join_ranges(ranges);
     }
     ranges
+}
+
+fn join_ranges(mut ranges: Vec<Range<u64>>) -> Vec<Range<u64>> {
+    ranges.sort_by_key(|r| r.start);
+    let mut result = Vec::new();
+    let mut current_range = ranges[0].clone();
+    for range in ranges.into_iter().skip(1) {
+        if range.start <= current_range.end {
+            current_range.end = current_range.end.max(range.end);
+        } else {
+            result.push(current_range);
+            current_range = range;
+        }
+    }
+    result.push(current_range);
+    result
 }
 
 pub struct Day5;
