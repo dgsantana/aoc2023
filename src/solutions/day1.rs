@@ -75,19 +75,26 @@ impl Solution for Day1 {
 
 #[cfg(test)]
 mod tests {
-    use crate::solutions::read_sample_input;
-
     use super::*;
 
     #[test]
     fn test_part1() {
-        let input = read_sample_input(1, 1);
-        assert_eq!(part1(&input), 142);
+        let input = "1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet";
+        assert_eq!(part1(input), 142);
     }
 
     #[test]
     fn test_part2() {
-        let input = read_sample_input(1, 2);
-        assert_eq!(part2(&input), 281);
+        let input = "two1nine
+eightwothree
+abcone2threexyz
+xtwone3four
+4nineeightseven2
+zoneight234
+7pqrstsixteen";
+        assert_eq!(part2(input), 281);
     }
 }

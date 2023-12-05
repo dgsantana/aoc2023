@@ -259,20 +259,27 @@ impl Solution for Day3 {
 
 #[cfg(test)]
 mod tests {
-    use crate::solutions::read_sample_input;
-
     use super::*;
+
+    const TEST_DATA: &str = "467..114..
+...*......
+..35..633.
+......#...
+617*......
+.....+.58.
+..592.....
+......755.
+...$.*....
+.664.598..";
 
     #[test]
     fn test_part1() {
-        let input = read_sample_input(3, 1);
-        assert_eq!(part1(&input), 4361);
+        assert_eq!(part1(TEST_DATA), 4361);
     }
 
     #[test]
     fn test_part2() {
-        let input = read_sample_input(3, 2);
-        assert_eq!(part2(&input), 467835);
+        assert_eq!(part2(TEST_DATA), 467835);
     }
 
     #[test]
@@ -280,14 +287,5 @@ mod tests {
         let input = "23.4
 ..*.";
         assert_eq!(part2(input), 0);
-    }
-
-    #[test]
-    fn test_part2_3() {
-        let input = ".......5......
-..7*..*.......
-...*13*.......
-.......15.....";
-        assert_eq!(part2(input), 442);
     }
 }

@@ -50,12 +50,6 @@ pub use day23::Day23;
 pub use day24::Day24;
 pub use day25::Day25;
 
-#[allow(unused)]
-pub fn read_sample_input(day: u32, part: u32) -> String {
-    let path = format!("inputs/day{}_sample_p{}.txt", day, part);
-    std::fs::read_to_string(path).unwrap()
-}
-
 pub fn read_data(day: u32) -> String {
     let path = format!("inputs/day{}.txt", day);
     std::fs::read_to_string(path).unwrap()
