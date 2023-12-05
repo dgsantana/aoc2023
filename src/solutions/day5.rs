@@ -322,34 +322,6 @@ fn part2(input: &str) -> u64 {
         }
     }
 
-    fn source_to_target_ranges(range: Range<u64>, source2targets: &[MapRange]) -> Vec<Range<u64>> {
-        let mut ranges = Vec::new();
-        for map in source2targets.iter() {
-            let source_range = map.source_range();
-            let intersect_start = source_range.start.max(range.start);
-            let intersect_end = source_range.end.min(range.end);
-            if intersect_start >= intersect_end {
-                continue;
-            }
-            let target_range = map.destination_range();
-            let target_start = target_range.start + (intersect_start - source_range.start);
-            let target_end = target_start + (intersect_end - intersect_start);
-            ranges.push(target_start..target_end);
-            if range.start < intersect_start {
-                let sub_range = range.start..intersect_start;
-                ranges.extend(source_to_target_ranges(sub_range, source2targets));
-            }
-            if range.end > intersect_end {
-                let sub_range: Range<u64> = intersect_end..range.end;
-                ranges.extend(source_to_target_ranges(sub_range, source2targets));
-            }
-        }
-        if ranges.is_empty() {
-            ranges.push(range);
-        }
-        ranges
-    }
-
     let seeds_to_locations = |seed_range: &Range<u64>| {
         let seed_soils = source_to_target_ranges(seed_range.clone(), &seed2soil);
         let soil_fertilizers = seed_soils
@@ -510,6 +482,34 @@ fn parse_map(lines: &mut Lines<'_>) -> Vec<MapRange> {
         ranges.push(MapRange::new(numbers[0], numbers[1], numbers[2]));
     }
     ranges.sort_by_key(|r| r.source);
+    ranges
+}
+
+fn source_to_target_ranges(range: Range<u64>, source2targets: &[MapRange]) -> Vec<Range<u64>> {
+    let mut ranges = Vec::new();
+    for map in source2targets.iter() {
+        let source_range = map.source_range();
+        let intersect_start = source_range.start.max(range.start);
+        let intersect_end = source_range.end.min(range.end);
+        if intersect_start >= intersect_end {
+            continue;
+        }
+        let target_range = map.destination_range();
+        let target_start = target_range.start + (intersect_start - source_range.start);
+        let target_end = target_start + (intersect_end - intersect_start);
+        ranges.push(target_start..target_end);
+        if range.start < intersect_start {
+            let sub_range = range.start..intersect_start;
+            ranges.extend(source_to_target_ranges(sub_range, source2targets));
+        }
+        if range.end > intersect_end {
+            let sub_range: Range<u64> = intersect_end..range.end;
+            ranges.extend(source_to_target_ranges(sub_range, source2targets));
+        }
+    }
+    if ranges.is_empty() {
+        ranges.push(range);
+    }
     ranges
 }
 
