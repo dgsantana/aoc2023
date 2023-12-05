@@ -15,5 +15,5 @@ fn part2(c: &mut Criterion) {
     });
 }
 
-criterion_group!(day2_benches, part1, part2);
-criterion_main!(day2_benches);
+criterion_group!(day3_benches, part1, part2);
+criterion_main!(day3_benches);
