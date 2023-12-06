@@ -93,8 +93,9 @@ fn calculate_race_brute_force(t: u64, d: u64) -> (u64, u64, u64) {
             if min_holding_time == 0 {
                 min_holding_time = holding_time;
             }
-            max_holding_time = holding_time;
-            permutations += 1;
+            max_holding_time = t - min_holding_time + 1;
+            permutations = max_holding_time - min_holding_time;
+            break;
         }
         holding_time += 1;
     }
