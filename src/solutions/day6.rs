@@ -76,6 +76,11 @@ fn part2(input: &str) -> usize {
         print!("Permutation Race {time}ms {distance}mm: ");
     }
 
+    let mut permutations = 0;
+    let mut min_holding_time = 0;
+    let mut max_holding_time = 0;
+    let mut holding_time = 1;
+
     loop {
         if holding_time > time {
             break;
@@ -83,6 +88,14 @@ fn part2(input: &str) -> usize {
         let time_left = time - holding_time;
         let race_result = holding_time * time_left;
         if race_result > distance {
+            if min_holding_time == 0 {
+                min_holding_time = holding_time;
+            }
+            max_holding_time = holding_time;
+            permutations += 1;
+        }
+        holding_time += 1;
+    }
     if cfg!(feature = "visualize") {
         println!(
             "Race {time}ms {distance}mm -> [{}..{}] ({})",
