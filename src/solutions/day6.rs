@@ -24,7 +24,7 @@ fn part1(input: &str) -> u32 {
         let distance = distances[i];
         let mut permutations = Vec::new();
         let mut holding_time = 1;
-        if cfg!(feature = "visualuze") {
+        if cfg!(feature = "visualize") {
             print!("Permutation Race {time}ms {distance}mm: ");
         }
         loop {
@@ -34,7 +34,7 @@ fn part1(input: &str) -> u32 {
             let time_left = time - holding_time;
             let race_result = holding_time * time_left;
             if race_result > distance {
-                if cfg!(feature = "visualuze") {
+                if cfg!(feature = "visualize") {
                     print!("{holding_time}->{race_result} ");
                 }
                 permutations.push(holding_time);
@@ -43,7 +43,7 @@ fn part1(input: &str) -> u32 {
         }
         let min = permutations.iter().min().unwrap_or(&0);
         let max = permutations.iter().max().unwrap_or(&0);
-        if cfg!(feature = "visualuze") {
+        if cfg!(feature = "visualize") {
             println!();
             println!(
                 "Race {time}ms {distance}mm -> [{}..{}] ({})",
@@ -72,12 +72,7 @@ fn part2(input: &str) -> usize {
         .parse::<usize>()
         .expect("Failed to parse distance");
 
-    let mut holding_time = 1;
-    let mut min_holding_time = 0;
-    let mut max_holding_time = 0;
-    let mut permutations = 0;
-
-    if cfg!(feature = "visualuze") {
+    if cfg!(feature = "visualize") {
         print!("Permutation Race {time}ms {distance}mm: ");
     }
 
@@ -88,15 +83,7 @@ fn part2(input: &str) -> usize {
         let time_left = time - holding_time;
         let race_result = holding_time * time_left;
         if race_result > distance {
-            if min_holding_time == 0 {
-                min_holding_time = holding_time;
-            }
-            max_holding_time = holding_time;
-            permutations += 1;
-        }
-        holding_time += 1;
-    }
-    if cfg!(feature = "visualuze") {
+    if cfg!(feature = "visualize") {
         println!(
             "Race {time}ms {distance}mm -> [{}..{}] ({})",
             min_holding_time, max_holding_time, permutations
