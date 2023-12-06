@@ -18,22 +18,25 @@ fn part1(input: &str) -> u64 {
         .filter_map(|v| v.parse::<u64>().ok())
         .collect::<Vec<_>>();
 
-    let total_permutations: u64 = times.iter().zip(distances.iter()).map(|(time, distance)| {
-        let (min_holding_time, max_holding_time, permutations) = if cfg!(feature = "brute_force") {
-            calculate_race_brute_force(*time, *distance)
-        } else {
-            calculate_race_optimize(*time, *distance)
-        };
-        if cfg!(feature = "visualize") {
-            println!(
-                "Race {time}ms {distance}mm -> [{}..{}] ({})",
-                min_holding_time,
-                max_holding_time,
-                permutations
-            );
-        }
-        permutations
-    }).product();
+    let total_permutations: u64 = times
+        .iter()
+        .zip(distances.iter())
+        .map(|(time, distance)| {
+            let (min_holding_time, max_holding_time, permutations) =
+                if cfg!(feature = "brute_force") {
+                    calculate_race_brute_force(*time, *distance)
+                } else {
+                    calculate_race_optimize(*time, *distance)
+                };
+            if cfg!(feature = "visualize") {
+                println!(
+                    "Race {time}ms {distance}mm -> [{}..{}] ({})",
+                    min_holding_time, max_holding_time, permutations
+                );
+            }
+            permutations
+        })
+        .product();
 
     total_permutations
 }
@@ -108,22 +111,18 @@ fn calculate_race_brute_force(t: u64, d: u64) -> (u64, u64, u64) {
 ///
 /// We can rearrange this to:
 ///
-/// -holding_time^2 = holding_time * total_time - distance
-///
-/// holding_time^2 = distance - holding_time * total_time
-///
-/// holding_time^2 + holding_time * total_time - distance = 0
+/// -holding_time^2 + holding_time * total_time - distance = 0
 ///
 /// Where:
 ///
-/// a = 1, b = total_time, c = -distance
+/// a = -1, b = total_time, c = -distance
 ///
 /// We can then solve for holding_time using the quadratic equation:
 ///
 ///
-/// holding_time = (total_time - sqrt(total_time^2 - 4 * distance)) / 2
+/// holding_time = -(-total_time - sqrt(total_time^2 - 4 * distance)) / 2
 ///
-/// holding_time = (total_time + sqrt(total_time^2 - 4 * distance)) / 2
+/// holding_time = -(-total_time + sqrt(total_time^2 - 4 * distance)) / 2
 ///
 ///
 /// Assuming that the discriminant is positive, we can calculate the two solutions
@@ -141,13 +140,10 @@ fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
 
     let sqrt_discriminant = discriminant.sqrt();
     let t_f = t as f64;
-    let a1 = (t_f + sqrt_discriminant) / 2.0;
-    let a2 = (t_f - sqrt_discriminant) / 2.0;
-    let aa1 = (t_f + sqrt_discriminant) as u64 / 2;
-    let aa2 = (t_f - sqrt_discriminant) as u64 / 2;
-    // let min = 
-    let max_holding_time = a1.floor() as u64;
-    let min_holding_time = a2.floor() as u64;
+    let a1 = -((-t_f + sqrt_discriminant) / 2.0);
+    let a2 = -((-t_f - sqrt_discriminant) / 2.0);
+    let max_holding_time = a1.max(a2).floor() as u64;
+    let min_holding_time = a1.min(a2).floor() as u64;
     let result = if discriminant == 0.0 {
         // Only one solution
         eprintln!("Discriminant is zero. Only one solution available.");
@@ -162,8 +158,8 @@ fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
     if cfg!(feature = "visualize") {
         println!("Discriminant: {}", discriminant);
         println!("Sqrt Discriminant: {}", sqrt_discriminant);
-        println!("Solution 1: {} ({})", a1, aa1);
-        println!("Solution 2: {} ({})", a2, aa2);
+        println!("Solution 1: {}", a1);
+        println!("Solution 2: {}", a2);
         println!("Permutations: {}", result.2);
     }
     result
