@@ -146,6 +146,7 @@ fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
     let min = a1.min(a2);
     let max = a1.max(a2);
 
+    // Just for history:
     // If the max is a whole number, subtract 1 to get the correct range
     // Took me a while to figure this out. The problem is that the max
     // holding time is the time where we cross the finish line,
@@ -153,12 +154,14 @@ fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
     // at the same time. To fix this we need to subtract one.
     // Thankfully this was one of the test cases. But my input didn't have
     // this problem.
-    let max = if max.fract() == 0.0 {
-        max - 1.0
-    } else {
-        max
-    };
-    let max_holding_time = max.floor() as u64;
+    // let max = if max.fract() == 0.0 {
+    //     max - 1.0
+    // } else {
+    //     max
+    // };
+
+    // Upgrade note: just ceil the max, and subtract 1, no need to check for whole number
+    let max_holding_time = max.ceil() as u64 - 1;
     let min_holding_time = min.floor() as u64;
     let result = if discriminant == 0.0 {
         // Only one solution
