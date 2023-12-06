@@ -5,89 +5,88 @@ use super::Solution;
 // holding_time = (total_time - sqrt(total_time^2 - 4 * distance)) / 2
 // holding_time = (total_time + sqrt(total_time^2 - 4 * distance)) / 2
 
-fn part1(input: &str) -> u32 {
+fn part1(input: &str) -> u64 {
     let Some((times, distances)) = input.split_once('\n') else {
         return 0;
     };
     let times = times[6..]
         .split_ascii_whitespace()
-        .filter_map(|v| v.parse::<u32>().ok())
+        .filter_map(|v| v.parse::<u64>().ok())
         .collect::<Vec<_>>();
     let distances = distances[10..]
         .split_ascii_whitespace()
-        .filter_map(|v| v.parse::<u32>().ok())
+        .filter_map(|v| v.parse::<u64>().ok())
         .collect::<Vec<_>>();
 
-    let mut total_permutations = 1;
-    for i in 0..times.len() {
-        let time = times[i];
-        let distance = distances[i];
-        let mut permutations = Vec::new();
-        let mut holding_time = 1;
+    let total_permutations: u64 = times.iter().zip(distances.iter()).map(|(time, distance)| {
+        let (min_holding_time, max_holding_time, permutations) = if cfg!(feature = "brute_force") {
+            calculate_race_brute_force(*time, *distance)
+        } else {
+            calculate_race_optimize(*time, *distance)
+        };
         if cfg!(feature = "visualize") {
-            print!("Permutation Race {time}ms {distance}mm: ");
-        }
-        loop {
-            if holding_time > time {
-                break;
-            }
-            let time_left = time - holding_time;
-            let race_result = holding_time * time_left;
-            if race_result > distance {
-                if cfg!(feature = "visualize") {
-                    print!("{holding_time}->{race_result} ");
-                }
-                permutations.push(holding_time);
-            }
-            holding_time += 1;
-        }
-        let min = permutations.iter().min().unwrap_or(&0);
-        let max = permutations.iter().max().unwrap_or(&0);
-        if cfg!(feature = "visualize") {
-            println!();
             println!(
                 "Race {time}ms {distance}mm -> [{}..{}] ({})",
-                min,
-                max,
-                permutations.len()
+                min_holding_time,
+                max_holding_time,
+                permutations
             );
         }
-        total_permutations *= permutations.len() as u32;
-    }
+        permutations
+    }).product();
+
     total_permutations
 }
 
-fn part2(input: &str) -> usize {
+fn part2(input: &str) -> u64 {
     let Some((times, distances)) = input.split_once('\n') else {
         return 0;
     };
     let time = times[6..]
         .replace(' ', "")
         .trim()
-        .parse::<usize>()
+        .parse::<u64>()
         .expect("Failed to parse time");
     let distance = distances[10..]
         .replace(' ', "")
         .trim()
-        .parse::<usize>()
+        .parse::<u64>()
         .expect("Failed to parse distance");
 
     if cfg!(feature = "visualize") {
         print!("Permutation Race {time}ms {distance}mm: ");
     }
 
+    let (min_holding_time, max_holding_time, permutations) = if cfg!(feature = "brute_force") {
+        calculate_race_brute_force(time, distance)
+    } else {
+        calculate_race_optimize(time, distance)
+    };
+
+    if cfg!(feature = "visualize") {
+        println!(
+            "Race {time}ms {distance}mm -> [{}..{}] ({})",
+            min_holding_time, max_holding_time, permutations
+        );
+    }
+    permutations
+}
+
+/// Simple brute force solution
+///
+fn calculate_race_brute_force(t: u64, d: u64) -> (u64, u64, u64) {
     let mut permutations = 0;
     let mut min_holding_time = 0;
     let mut max_holding_time = 0;
     let mut holding_time = 1;
 
     loop {
-        if holding_time > time {
+        if holding_time > t {
             break;
         }
-        let time_left = time - holding_time;
+        let time_left = t - holding_time;
         let race_result = holding_time * time_left;
-        if race_result > distance {
+        if race_result > d {
             if min_holding_time == 0 {
                 min_holding_time = holding_time;
             }
@@ -96,13 +95,78 @@ fn part2(input: &str) -> usize {
         }
         holding_time += 1;
     }
-    if cfg!(feature = "visualize") {
-        println!(
-            "Race {time}ms {distance}mm -> [{}..{}] ({})",
-            min_holding_time, max_holding_time, permutations
+    (min_holding_time, max_holding_time, permutations)
+}
+
+/// This solves the quadratic equation for our race problem.
+///
+/// ax^2 + bx + c = 0
+///
+/// The equation is:
+///
+/// distance = holding_time * total_time - holding_time^2
+///
+/// We can rearrange this to:
+///
+/// -holding_time^2 = holding_time * total_time - distance
+///
+/// holding_time^2 = distance - holding_time * total_time
+///
+/// holding_time^2 + holding_time * total_time - distance = 0
+///
+/// Where:
+///
+/// a = 1, b = total_time, c = -distance
+///
+/// We can then solve for holding_time using the quadratic equation:
+///
+///
+/// holding_time = (total_time - sqrt(total_time^2 - 4 * distance)) / 2
+///
+/// holding_time = (total_time + sqrt(total_time^2 - 4 * distance)) / 2
+///
+///
+/// Assuming that the discriminant is positive, we can calculate the two solutions
+/// and return the one that is greater than the holding time
+/// This is a lot faster than the brute force method
+fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
+    let discriminant = (t * t) as f64 - 4.0 * d as f64;
+    if discriminant < 0.0 {
+        eprintln!(
+            "Discriminant is negative: {}. No solution available.",
+            discriminant
         );
+        return (0, 0, 0);
     }
-    permutations
+
+    let sqrt_discriminant = discriminant.sqrt();
+    let t_f = t as f64;
+    let a1 = (t_f + sqrt_discriminant) / 2.0;
+    let a2 = (t_f - sqrt_discriminant) / 2.0;
+    let aa1 = (t_f + sqrt_discriminant) as u64 / 2;
+    let aa2 = (t_f - sqrt_discriminant) as u64 / 2;
+    // let min = 
+    let max_holding_time = a1.floor() as u64;
+    let min_holding_time = a2.floor() as u64;
+    let result = if discriminant == 0.0 {
+        // Only one solution
+        eprintln!("Discriminant is zero. Only one solution available.");
+        (a1 as u64, 0, 0)
+    } else {
+        (
+            min_holding_time,
+            max_holding_time,
+            (min_holding_time..max_holding_time).count() as u64,
+        )
+    };
+    if cfg!(feature = "visualize") {
+        println!("Discriminant: {}", discriminant);
+        println!("Sqrt Discriminant: {}", sqrt_discriminant);
+        println!("Solution 1: {} ({})", a1, aa1);
+        println!("Solution 2: {} ({})", a2, aa2);
+        println!("Permutations: {}", result.2);
+    }
+    result
 }
 
 pub struct Day6;
