@@ -140,10 +140,11 @@ fn calculate_race_optimize(t: u64, d: u64) -> (u64, u64, u64) {
 
     let sqrt_discriminant = discriminant.sqrt();
     let t_f = t as f64;
-    let a1 = -((-t_f + sqrt_discriminant) / 2.0);
-    let a2 = -((-t_f - sqrt_discriminant) / 2.0);
+    let a1 = (t_f - sqrt_discriminant) / 2.0;
+    let a2 = (t_f + sqrt_discriminant) / 2.0;
     let min = a1.min(a2);
     let max = a1.max(a2);
+
     // If the max is a whole number, subtract 1 to get the correct range
     // Took me a while to figure this out. The problem is that the max
     // holding time is the time where we cross the finish line,
