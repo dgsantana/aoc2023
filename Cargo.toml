@@ -17,6 +17,14 @@ ratatui = "0.24"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+iai-callgrind = "0.8"
+
+[profile.dev.package."*"]
+debug = false
+
+[[bench]]
+name = "stats"
+harness = false
 
 [[bench]]
 name = "day1"
