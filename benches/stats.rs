@@ -1,11 +1,11 @@
 use std::fs::read_to_string;
 
-use iai_callgrind::{black_box, library_benchmark, library_benchmark_group, main};
+use iai_callgrind::{LibraryBenchmarkConfig, black_box, library_benchmark, library_benchmark_group, main};
 
 use aoc2023::*;
 
 fn gen_input(day: u8) -> String {
-    let input = read_to_string(format!("../inputs/day{day}.txt")).unwrap();
+    let input = read_to_string(format!("../inputs/day{day}.txt")).expect("Could not read input");
     input.to_string()
 }
 
@@ -42,6 +42,9 @@ bench_day!(y2023d06_2, 6, Day6, 2);
 library_benchmark_group!(
     name = bench_year2023;
     benchmarks = y2023d01_1, y2023d01_2, y2023d02_1, y2023d02_2, y2023d03_1, y2023d03_2, y2023d04_1, y2023d04_2, y2023d05_1, y2023d05_2, y2023d06_1, y2023d06_2
+
 );
 
-main!(library_benchmark_groups = bench_year2023);
+main!(
+    library_benchmark_groups = bench_year2023
+);
