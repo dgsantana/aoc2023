@@ -23,10 +23,6 @@ iai-callgrind = "0.8"
 debug = false
 
 [[bench]]
-name = "stats"
-harness = false
-
-[[bench]]
 name = "day1"
 harness = false
 
@@ -48,4 +44,8 @@ harness = false
 
 [[bench]]
 name = "day6"
+harness = false
+
+[[bench]]
+name = "day7"
 harness = false

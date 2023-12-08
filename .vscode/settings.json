@@ -2,5 +2,8 @@
     "files.eol": "\n",
     "cSpell.enableFiletypes": [
         "!plaintext"
+    ],
+    "cSpell.words": [
+        "repr"
     ]
 }

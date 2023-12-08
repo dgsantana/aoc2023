@@ -1,12 +1,10 @@
-use std::fmt::Display;
-
-use crossterm::style::Stylize;
-use itertools::Itertools;
+use self::hand::Hand;
 
 use super::Solution;
 
-const CARDS: &str = "AKQJT98765432";
-const CARDS_HEX: &str = "CBA9876543210";
+mod card;
+mod hand;
+mod hand_type;
 
 /// Parse the input into a vector of cards and the bid.
 ///
@@ -19,346 +17,44 @@ const CARDS_HEX: &str = "CBA9876543210";
 /// A23A4 - > One pair
 /// 23456 - > High card
 fn part1(input: &str) -> u64 {
-    let mut hands = input.lines().map(hand).collect::<Vec<_>>();
+    let mut hands = input.lines().map(Hand::from_str).collect::<Vec<_>>();
     // Rank the hands
     hands.sort();
-    // Sort the hands by the card converting the card to a number, assuming the cards is a hex number
-    // hands.sort_by(|a, b| {
-    //     u64::from_str_radix(&a.cards, 16)
-    //         .unwrap()
-    //         .cmp(&u64::from_str_radix(&b.cards, 16).unwrap())
-    // });
 
     hands
         .iter_mut()
         .enumerate()
-        .for_each(|(i, v)| v.rank += i as u64);
-    for hand in hands.iter() {
-        println!("{}", hand);
+        .for_each(|(i, v)| v.rank = 1 + i as u64);
+    if cfg!(feature = "visualize") {
+        for hand in hands.iter() {
+            println!("{}", hand);
+        }
     }
-    hands.iter().fold(0, |acc, hand| acc + hand.bid * hand.rank)
-}
-
-fn hand(input: &str) -> Hand {
-    let (cards, bid) = input.split_once(' ').expect("Invalid input");
-    let bid = bid.parse::<u64>().expect("Invalid bid");
-    let values = cards
-        .chars()
-        .filter_map(|c| CARDS.find(c))
-        .map(|i| 2u32.pow(14 - i as u32))
-        .sorted_by(|a, b| b.cmp(&a))
-        .collect::<Vec<_>>();
-    let cards = values
-        .iter()
-        .map(|v| CARDS.chars().nth(14 - v.trailing_zeros() as usize).unwrap())
-        .collect::<String>();
-    let cards_in_hex = values
-        .iter()
-        .map(|v| {
-            CARDS_HEX
-                .chars()
-                .nth(14 - v.trailing_zeros() as usize)
-                .unwrap()
-        })
-        .collect::<String>();
-    let unique_values = values.iter().unique().collect::<Vec<_>>();
-
-    // Sort the cards by repeated values and by the remaining values, making always sorted by value
-    let cards_in_hex = cards_in_hex
-        .chars()
-        .sorted_by(|a, b| {
-            let a = a.to_digit(16).unwrap();
-            let b = b.to_digit(16).unwrap();
-            let a = 2u32.pow(a);
-            let b = 2u32.pow(b);
-            b.cmp(&a)
-        })
-        .collect::<String>();
-
-    let (kind, remaing_value) = match unique_values.len() {
-        1 => (HandType::FiveOfAKind(*unique_values[0]), 0),
-        2 => {
-            if values[0] == values[3] || values[1] == values[4] {
-                // Handle AAAA2 or A2222
-                let remaing_values = unique_values
-                    .iter()
-                    .filter(|&&v| values[1] != *v)
-                    .copied()
-                    .sum();
-                (HandType::FourOfAKind(values[1]), remaing_values)
-            } else {
-                // Handle AAABB or AABBB
-                let three = unique_values
-                    .iter()
-                    .find(|&&v| values.iter().filter(|&v2| v2 == v).count() == 3)
-                    .copied()
-                    .unwrap();
-                let two = unique_values
-                    .iter()
-                    .find(|&&v| values.iter().filter(|&v2| v2 == v).count() == 2)
-                    .copied()
-                    .unwrap();
-                (HandType::FullHouse(*three, *two), 0)
-            }
-        }
-        3 => {
-            if values[0] == values[2] || values[1] == values[3] || values[2] == values[4] {
-                // Handle AAA23 or AK222 or A999K
-                let repeated_value = unique_values
-                    .iter()
-                    .find(|&&v| values.iter().filter(|&v2| v2 == v).count() == 3)
-                    .copied()
-                    .unwrap();
-                let remaing_values = unique_values
-                    .iter()
-                    .filter(|&&v| v != repeated_value)
-                    .copied()
-                    .sum();
-                (HandType::ThreeOfAKind(*repeated_value), remaing_values)
-            } else {
-                // Handle AA223 or AAK77 or A9922
-                let repeated_values = unique_values
-                    .iter()
-                    .filter(|&&v| values.iter().filter(|&v2| v2 == v).count() == 2)
-                    .copied()
-                    .collect::<Vec<_>>();
-                let remaing_values = unique_values
-                    .iter()
-                    .filter(|&&v| !repeated_values.contains(&v))
-                    .copied()
-                    .sum();
-                (
-                    HandType::TwoPair(*repeated_values[0], *repeated_values[1]),
-                    remaing_values,
-                )
-            }
-        }
-        4 => {
-            // Handle all cases for 1 pair, by finding the repeated value
-            let repeated_value = unique_values
-                .iter()
-                .find(|&&v| values.iter().filter(|&v2| v2 == v).count() == 2)
-                .copied()
-                .unwrap();
-            let remaing_values = unique_values
-                .iter()
-                .filter(|&&v| v != repeated_value)
-                .copied()
-                .sum();
-            (HandType::OnePair(*repeated_value), remaing_values)
-        }
-        5 => {
-            let remaing_values = unique_values.iter().copied().sum();
-            (HandType::HighCard(values[0]), remaing_values)
-        }
-        _ => unreachable!(),
-    };
-
-    let card_hex = u32::from_str_radix(&cards_in_hex, 16).unwrap();
-    let card_sum = cards_in_hex.chars().fold(0, |acc, c| {
-        let value = CARDS_HEX.find(c).unwrap();
-        let value = CARDS_HEX.len() - value - 1;
-        acc + value
-    }) as u64;
-
-    Hand {
-        rank: 1,
-        kind,
-        cards: cards.to_string(),
-        cards_hex: card_hex,
-        value: card_sum,
-        bid,
-    }
+    hands.iter().map(|h| h.rank * h.bid).sum()
 }
 
 fn part2(input: &str) -> u64 {
-    0
-}
+    let mut hands = input
+        .lines()
+        .map(|line| {
+            let mut hand = Hand::from_str(line);
+            hand.replace_jacks();
+            hand
+        })
+        .collect::<Vec<_>>();
+    // Rank the hands
+    hands.sort();
 
-#[derive(Debug, PartialEq, Eq)]
-struct Hand {
-    rank: u64,
-    kind: HandType,
-    cards_hex: u32,
-    cards: String,
-    value: u64,
-    bid: u64,
-}
-
-impl Ord for Hand {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        if self.kind != other.kind {
-            self.kind.cmp(&other.kind)
-        } else {
-            self.value.cmp(&other.value)
+    hands
+        .iter_mut()
+        .enumerate()
+        .for_each(|(i, v)| v.rank = 1 + i as u64);
+    if cfg!(feature = "visualize") {
+        for hand in hands.iter() {
+            println!("{}", hand);
         }
     }
-}
-
-impl PartialOrd for Hand {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Display for Hand {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:04}: {} -> {:05X} - {:05}  {:04} ({:05} : {:05}) -> {}",
-            self.rank,
-            &self.cards,
-            console::style(self.cards_hex).dim(),
-            console::style(self.value).dim(),
-            console::style(self.bid).dim(),
-            console::style(self.kind.value()).green(),
-            console::style(self.value).red(),
-            &self.kind,
-        )
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum HandType {
-    FiveOfAKind(u32),
-    FourOfAKind(u32),
-    FullHouse(u32, u32),
-    ThreeOfAKind(u32),
-    TwoPair(u32, u32),
-    OnePair(u32),
-    HighCard(u32),
-}
-
-impl Ord for HandType {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let self_order = self.type_value();
-        let other_order = other.type_value();
-        if self_order != other_order {
-            return self_order.cmp(&other_order);
-        }
-        match (self, other) {
-            (HandType::FullHouse(t1, d1), HandType::FullHouse(t2, d2)) if t1 == t2 => d1.cmp(d2),
-            (HandType::FullHouse(t1, _), HandType::FullHouse(t2, _)) if t1 < t2 => {
-                std::cmp::Ordering::Less
-            }
-            (HandType::FullHouse(t1, _), HandType::FullHouse(t2, _)) if t1 > t2 => {
-                std::cmp::Ordering::Greater
-            }
-            (HandType::FullHouse(_, _), HandType::FullHouse(_, _)) => {
-                self.value().cmp(&other.value())
-            }
-            (HandType::TwoPair(_, _), HandType::TwoPair(_, _)) => self.value().cmp(&other.value()),
-            _ => self.value().cmp(&other.value()),
-        }
-    }
-}
-
-impl PartialOrd for HandType {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Display for HandType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        fn v2c(value: u32) -> char {
-            CARDS
-                .chars()
-                .nth(14 - value.trailing_zeros() as usize)
-                .unwrap()
-        }
-        match self {
-            HandType::FiveOfAKind(v) => write!(f, "Five of a kind {}", v2c(*v)),
-            HandType::FourOfAKind(v) => write!(f, "Four of a kind {}", v2c(*v)),
-            HandType::FullHouse(v1, v2) => write!(f, "Full house {} and {}", v2c(*v1), v2c(*v2)),
-            HandType::ThreeOfAKind(v) => write!(f, "Three of a kind {}", v2c(*v)),
-            HandType::TwoPair(v1, v2) => write!(f, "Two pair {} and {}", v2c(*v1), v2c(*v2)),
-            HandType::OnePair(v) => write!(f, "One pair {}", v2c(*v)),
-            HandType::HighCard(v) => write!(f, "High card {}", v2c(*v)),
-        }
-    }
-}
-
-impl HandType {
-    fn value(&self) -> u32 {
-        match self {
-            HandType::FiveOfAKind(v) => *v,
-            HandType::FourOfAKind(v) => *v,
-            HandType::FullHouse(v1, v2) => *v1 + *v2,
-            HandType::ThreeOfAKind(v) => *v,
-            HandType::TwoPair(v1, v2) => *v1 + *v2,
-            HandType::OnePair(v) => *v,
-            HandType::HighCard(v) => *v,
-        }
-    }
-
-    fn type_value(&self) -> u32 {
-        match self {
-            HandType::FiveOfAKind(_) => 1 << 6,
-            HandType::FourOfAKind(_) => 1 << 5,
-            HandType::FullHouse(_, _) => 1 << 4,
-            HandType::ThreeOfAKind(_) => 1 << 3,
-            HandType::TwoPair(_, _) => 1 << 2,
-            HandType::OnePair(_) => 1 << 1,
-            HandType::HighCard(_) => 1,
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Card {
-    Two,
-    Three,
-    Four,
-    Five,
-    Six,
-    Seven,
-    Eight,
-    Nine,
-    Ten,
-    Jack,
-    Queen,
-    King,
-    Ace,
-}
-
-impl Card {
-    fn value(&self) -> u32 {
-        match self {
-            Card::Two => 2,
-            Card::Three => 3,
-            Card::Four => 4,
-            Card::Five => 5,
-            Card::Six => 6,
-            Card::Seven => 7,
-            Card::Eight => 8,
-            Card::Nine => 9,
-            Card::Ten => 10,
-            Card::Jack => 11,
-            Card::Queen => 12,
-            Card::King => 13,
-            Card::Ace => 14,
-        }
-    }
-
-    fn from_char(c: char) -> Self {
-        match c {
-            '2' => Card::Two,
-            '3' => Card::Three,
-            '4' => Card::Four,
-            '5' => Card::Five,
-            '6' => Card::Six,
-            '7' => Card::Seven,
-            '8' => Card::Eight,
-            '9' => Card::Nine,
-            'T' => Card::Ten,
-            'J' => Card::Jack,
-            'Q' => Card::Queen,
-            'K' => Card::King,
-            'A' => Card::Ace,
-            _ => unreachable!(),
-        }
-    }
+    hands.iter().map(|h| h.rank * h.bid).sum()
 }
 
 pub struct Day7;
@@ -401,24 +97,7 @@ KK677 28
 KTJJT 220
 QQQJA 483"
             ),
-            0
-        );
-    }
-
-    #[test]
-    fn test_part1_1() {
-        assert_eq!(
-            part1(
-                "T55J5 684
-KK677 28
-KTJJT 220
-QQQJA 483
-444KK 10
-44499 10
-33388 10
-22288 10"
-            ),
-            4520
+            5905
         );
     }
 }

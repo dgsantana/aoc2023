@@ -1,6 +1,6 @@
 use std::fs::read_to_string;
 
-use iai_callgrind::{LibraryBenchmarkConfig, black_box, library_benchmark, library_benchmark_group, main};
+use iai_callgrind::{black_box, library_benchmark, library_benchmark_group, main};
 
 use aoc2023::*;
 
