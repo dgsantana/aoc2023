@@ -1,6 +1,9 @@
 use crate::visualize_println;
 
-use self::{direction::Direction, node::Node};
+use self::{
+    direction::Direction,
+    node::{encode_string, Node},
+};
 
 use super::Solution;
 
@@ -12,6 +15,8 @@ fn part1(input: &str) -> u64 {
 
     let start = "AAA";
     let goal = "ZZZ";
+    let start = encode_string(start);
+    let goal = encode_string(goal);
 
     // find_path_steps(start, goal, &directions, &nodes, &nodes_refs)
     step_all(start, goal, &directions, &nodes, &nodes_refs)
@@ -21,10 +26,12 @@ fn part2(input: &str) -> u64 {
     let (directions, positions, nodes, nodes_refs) = parse_input(input);
     let start = "A";
     let goal = "Z";
+    let start = encode_string(start);
+    let goal = encode_string(goal);
 
     let next_nodes = nodes
         .iter()
-        .filter(|n| n.name.ends_with(start))
+        .filter(|n| n.match_name(start))
         .map(|n| &n.node_ref)
         .cloned()
         .collect::<Vec<_>>();
@@ -34,18 +41,18 @@ fn part2(input: &str) -> u64 {
     // luck, but it works.
     next_nodes
         .iter()
-        .map(|n| step_all(&positions[n.index], goal, &directions, &nodes, &nodes_refs))
+        .map(|n| step_all(positions[n.index], goal, &directions, &nodes, &nodes_refs))
         .fold(1, lcm)
 }
 
-fn parse_input(input: &str) -> (Vec<Direction>, Vec<String>, Vec<Node>, Vec<node::NodeRef>) {
+fn parse_input(input: &str) -> (Vec<Direction>, Vec<u32>, Vec<Node>, Vec<node::NodeRef>) {
     let _start_time = std::time::Instant::now();
     let mut lines = input.lines().filter(|line| !line.is_empty());
     let directions = Direction::from_line(lines.next().unwrap());
     let mut nodes = lines.map(Node::from_line).collect::<Vec<_>>();
     let positions = nodes.iter().map(|n| n.name.clone()).collect::<Vec<_>>();
 
-    let mut nodes_refs = Vec::new();
+    let mut nodes_refs = Vec::with_capacity(nodes.len());
     for (index, node) in nodes.iter_mut().enumerate() {
         let left = node.left_string.clone();
         let right = node.right_string.clone();
@@ -54,7 +61,10 @@ fn parse_input(input: &str) -> (Vec<Direction>, Vec<String>, Vec<Node>, Vec<node
         node.node_ref.right = positions.iter().position(|name| name == &right).unwrap();
         nodes_refs.push(node.node_ref);
     }
-    visualize_println!("Time parse and build linked list: {:?}", _start_time.elapsed());
+    visualize_println!(
+        "Time parse and build linked list: {:?}",
+        _start_time.elapsed()
+    );
     (directions, positions, nodes, nodes_refs)
 }
 
@@ -76,21 +86,21 @@ fn parse_input(input: &str) -> (Vec<Direction>, Vec<String>, Vec<Node>, Vec<node
 ///
 /// The number of steps to reach the goal.
 fn step_all(
-    start: &str,
-    goal: &str,
+    start: u32,
+    goal: u32,
     directions: &[Direction],
     nodes: &[Node],
     nodes_refs: &[node::NodeRef],
 ) -> u64 {
     let goals_index = nodes
         .iter()
-        .filter(|n| n.name.ends_with(goal))
+        .filter(|n| n.match_name(goal))
         .map(|n| n.node_ref.index)
         .collect::<Vec<_>>();
 
     let mut next_nodes = nodes
         .iter()
-        .filter(|n| n.name.ends_with(start))
+        .filter(|n| n.match_name(start))
         .map(|n| &n.node_ref)
         .collect::<Vec<_>>();
 
@@ -98,15 +108,15 @@ fn step_all(
         "Start: {:?}",
         next_nodes
             .iter()
-            .map(|n| &nodes[n.index].name)
+            .map(|n| nodes[n.index].name())
             .collect::<Vec<_>>()
     );
     visualize_println!(
         "Possible Goals: {:?}",
         nodes
             .iter()
-            .filter(|n| n.name.ends_with(goal))
-            .map(|n| &n.name)
+            .filter(|n| n.match_name(goal))
+            .map(|n| n.name())
             .collect::<Vec<_>>()
     );
 
@@ -130,15 +140,15 @@ fn step_all(
         if cfg!(feature = "visualize") {
             let starts = _current_index
                 .iter()
-                .map(|i| &nodes[*i].name)
+                .map(|i| nodes[*i].name())
                 .collect::<Vec<_>>();
             let ends = next_nodes
                 .iter()
                 .map(|n| {
-                    if nodes[n.index].name.ends_with(goal) {
-                        console::style(&nodes[n.index].name).green()
+                    if nodes[n.index].match_name(goal) {
+                        console::style(nodes[n.index].name()).green()
                     } else {
-                        console::style(&nodes[n.index].name).dim()
+                        console::style(nodes[n.index].name()).dim()
                     }
                 })
                 .collect::<Vec<_>>();
