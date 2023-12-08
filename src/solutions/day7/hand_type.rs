@@ -157,33 +157,35 @@ impl HandType {
                 .any(|cards| cards.iter().dedup().count() == 1)
         {
             visualize_println!(" Four of a Kind");
-            return HandType::FourOfAKind(last_card);
+            let highest_counted_card = counts
+                .iter()
+                .max_by_key(|(_, v)| **v)
+                .map(|v| *v.0)
+                .unwrap();
+            return HandType::FourOfAKind(highest_counted_card);
         }
-        // AAA8J
-        if jokers == 1 && unique_cards_len == 2 {
-            visualize_println!(" Full House");
-            return HandType::FullHouse(last_card, no_jokers[0]);
+
+        if jokers == 1 {
+            if unique_cards_len == 2 {
+                // AAA8J
+                visualize_println!(" Full House");
+                return HandType::FullHouse(last_card, no_jokers[0]);
+            } else if unique_cards_len == 3 {
+                // 2344J
+                visualize_println!(" Three of a Kind");
+                let higher_card = counts.iter().find(|(_, v)| **v == 2).map(|v| *v.0).unwrap();
+                return HandType::ThreeOfAKind(higher_card);
+            } else if unique_cards_len == 4 {
+                // ATJ29
+                visualize_println!(" One Pair {}", last_card);
+                return HandType::OnePair(last_card);
+            }
         }
-        // 2344J
-        if jokers == 1 && unique_cards_len == 3 {
-            visualize_println!(" Three of a Kind");
-            let higher_card = counts.iter().find(|(_, v)| **v == 2).map(|v| *v.0).unwrap();
-            return HandType::ThreeOfAKind(higher_card);
-        }
+
         // 234JJ
         if jokers == 2 && unique_cards_len == 3 {
             visualize_println!(" Three of a Kind");
             return HandType::ThreeOfAKind(last_card);
-        }
-        // AJJ28
-        if jokers == 2 && unique_cards_len == 3 {
-            visualize_println!(" Two Pair (2)");
-            return HandType::TwoPair(no_jokers[1], last_card);
-        }
-        // ATJ29
-        if jokers == 1 && unique_cards_len == 4 {
-            visualize_println!(" One Pair {}", last_card);
-            return HandType::OnePair(last_card);
         }
         // This should not happen
         unreachable!("Invalid input: {:?}", cards);
