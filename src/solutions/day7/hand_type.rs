@@ -139,7 +139,7 @@ impl HandType {
         counts.remove(&Card::Joker);
 
         let unique_cards_len = unique_cards.len();
-        let last_card = no_jokers.last().unwrap();
+        let last_card = no_jokers.last().cloned().unwrap();
 
         visualize_print!(" No jokers: {:?}", no_jokers);
         visualize_print!(" Counts: {:?}", counts);
@@ -157,12 +157,12 @@ impl HandType {
                 .any(|cards| cards.iter().dedup().count() == 1)
         {
             visualize_println!(" Four of a Kind");
-            return HandType::FourOfAKind(*last_card);
+            return HandType::FourOfAKind(last_card);
         }
         // AAA8J
         if jokers == 1 && unique_cards_len == 2 {
             visualize_println!(" Full House");
-            return HandType::FullHouse(*last_card, no_jokers[0]);
+            return HandType::FullHouse(last_card, no_jokers[0]);
         }
         // 2344J
         if jokers == 1 && unique_cards_len == 3 {
@@ -173,21 +173,20 @@ impl HandType {
         // 234JJ
         if jokers == 2 && unique_cards_len == 3 {
             visualize_println!(" Three of a Kind");
-            return HandType::ThreeOfAKind(*last_card);
+            return HandType::ThreeOfAKind(last_card);
         }
         // AJJ28
         if jokers == 2 && unique_cards_len == 3 {
             visualize_println!(" Two Pair (2)");
-            return HandType::TwoPair(no_jokers[1], *last_card);
+            return HandType::TwoPair(no_jokers[1], last_card);
         }
         // ATJ29
         if jokers == 1 && unique_cards_len == 4 {
             visualize_println!(" One Pair {}", last_card);
-            return HandType::OnePair(*last_card);
+            return HandType::OnePair(last_card);
         }
-
-        visualize_println!(" High card {}", no_jokers[0]);
-        HandType::HighCard(*last_card)
+        // This should not happen
+        unreachable!("Invalid input: {:?}", cards);
     }
 }
 
