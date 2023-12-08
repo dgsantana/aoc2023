@@ -14,17 +14,28 @@ pub struct Hand {
 }
 
 impl Hand {
-    pub fn from_str(input: &str) -> Self {
+    pub fn from_str(input: &str, replace_jokers: bool) -> Self {
         let Some((cards_str, bid)) = input.split_once(' ') else {
             panic!("Invalid input: {}", input);
         };
-        let cards = cards_str
+        let cards: [Card; 5] = cards_str
             .chars()
             .map(Card::from_char)
             .collect::<Vec<_>>()
             .try_into()
             .expect("Must be 5 cards");
         let bid = bid.parse::<u64>().unwrap();
+        let cards = if replace_jokers {
+            let mut cards = cards;
+            for card in cards.iter_mut() {
+                if *card == Card::Jack {
+                    *card = Card::Joker;
+                }
+            }
+            cards
+        } else {
+            cards
+        };
         let kind = HandType::from_cards(&cards);
         Self {
             rank: 0,
@@ -32,15 +43,6 @@ impl Hand {
             cards,
             bid,
         }
-    }
-
-    pub fn replace_jacks(&mut self) {
-        for card in self.cards.iter_mut() {
-            if *card == Card::Jack {
-                *card = Card::Joker;
-            }
-        }
-        self.kind = HandType::from_cards(&self.cards);
     }
 }
 

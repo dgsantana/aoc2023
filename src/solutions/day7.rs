@@ -17,7 +17,10 @@ mod hand_type;
 /// A23A4 - > One pair
 /// 23456 - > High card
 fn part1(input: &str) -> u64 {
-    let mut hands = input.lines().map(Hand::from_str).collect::<Vec<_>>();
+    let mut hands = input
+        .lines()
+        .map(|line| Hand::from_str(line, false))
+        .collect::<Vec<_>>();
     // Rank the hands
     hands.sort();
 
@@ -36,13 +39,8 @@ fn part1(input: &str) -> u64 {
 fn part2(input: &str) -> u64 {
     let mut hands = input
         .lines()
-        .map(|line| {
-            let mut hand = Hand::from_str(line);
-            hand.replace_jacks();
-            hand
-        })
-        .collect::<Vec<_>>();
-    // Rank the hands
+        .map(|line| Hand::from_str(line, true))
+        .collect::<Vec<_>>(); // Rank the hands
     hands.sort();
 
     hands
