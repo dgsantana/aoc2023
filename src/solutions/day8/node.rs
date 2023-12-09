@@ -16,7 +16,7 @@ pub struct NodeRef {
 impl Node {
     pub fn from_line(input: &str) -> Self {
         let mut parts = input.split(" = ");
-        let name = encode_string(parts.next().unwrap().trim());
+        let name = encode_string(parts.next().unwrap());
         let to_parse = parts.next().unwrap();
         let (left_string, right_string) = to_parse.split_once(", ").expect("Invalid input");
         let left_string = encode_string(&left_string[1..]);
@@ -109,17 +109,14 @@ fn decode_string(input: u32) -> String {
 /// 0x010909 & 0xFF0909 -> true
 /// 0x010909 & 0xFF0900 -> false
 /// 0x010909 & 0x010909 -> true
+#[inline(always)]
 fn match_code(code: u32, other: u32) -> bool {
-    let mut code = code;
-    let mut other = other;
-    while code > 0 {
-        let code_offset = code & 0xFF;
-        let other_offset = other & 0xFF;
+    for i in 0..4 {
+        let code_offset = (code >> (8 * i)) & 0xFF;
+        let other_offset = (other >> (8 * i)) & 0xFF;
         if code_offset != 0xFF && other_offset != 0xFF && code_offset != other_offset {
             return false;
         }
-        code >>= 8;
-        other >>= 8;
     }
     true
 }
