@@ -11,7 +11,7 @@ mod direction;
 mod node;
 
 fn part1(input: &str) -> u64 {
-    let (directions, _, nodes, nodes_refs) = parse_input(input);
+    let (directions, _, nodes) = parse_input(input);
 
     let start = "AAA";
     let goal = "ZZZ";
@@ -19,11 +19,11 @@ fn part1(input: &str) -> u64 {
     let goal = encode_string(goal);
 
     // find_path_steps(start, goal, &directions, &nodes, &nodes_refs)
-    step_all(start, goal, &directions, &nodes, &nodes_refs)
+    step_all(start, goal, &directions, &nodes)
 }
 
 fn part2(input: &str) -> u64 {
-    let (directions, positions, nodes, nodes_refs) = parse_input(input);
+    let (directions, positions, nodes) = parse_input(input);
     let start = "A";
     let goal = "Z";
     let start = encode_string(start);
@@ -41,31 +41,33 @@ fn part2(input: &str) -> u64 {
     // luck, but it works.
     next_nodes
         .iter()
-        .map(|n| step_all(positions[n.index], goal, &directions, &nodes, &nodes_refs))
+        .map(|n| step_all(positions[n.index], goal, &directions, &nodes))
         .fold(1, lcm)
 }
 
-fn parse_input(input: &str) -> (Vec<Direction>, Vec<u32>, Vec<Node>, Vec<node::NodeRef>) {
+fn parse_input(input: &str) -> (Vec<Direction>, Vec<u32>, Vec<Node>) {
     let _start_time = std::time::Instant::now();
     let mut lines = input.lines().filter(|line| !line.is_empty());
     let directions = Direction::from_line(lines.next().unwrap());
     let mut nodes = lines.map(Node::from_line).collect::<Vec<_>>();
-    let positions = nodes.iter().map(|n| n.name.clone()).collect::<Vec<_>>();
+    let positions = nodes.iter().map(|n| n.name).collect::<Vec<_>>();
 
-    let mut nodes_refs = Vec::with_capacity(nodes.len());
     for (index, node) in nodes.iter_mut().enumerate() {
-        let left = node.left_string.clone();
-        let right = node.right_string.clone();
         node.node_ref.index = index;
-        node.node_ref.left = positions.iter().position(|name| name == &left).unwrap();
-        node.node_ref.right = positions.iter().position(|name| name == &right).unwrap();
-        nodes_refs.push(node.node_ref);
+        node.node_ref.left = positions
+            .iter()
+            .position(|name| name == &node.left_string)
+            .unwrap();
+        node.node_ref.right = positions
+            .iter()
+            .position(|name| name == &node.right_string)
+            .unwrap();
     }
     visualize_println!(
         "Time parse and build linked list: {:?}",
         _start_time.elapsed()
     );
-    (directions, positions, nodes, nodes_refs)
+    (directions, positions, nodes)
 }
 
 /// Finds the shortest path to the goal.
@@ -85,13 +87,7 @@ fn parse_input(input: &str) -> (Vec<Direction>, Vec<u32>, Vec<Node>, Vec<node::N
 /// # Returns
 ///
 /// The number of steps to reach the goal.
-fn step_all(
-    start: u32,
-    goal: u32,
-    directions: &[Direction],
-    nodes: &[Node],
-    nodes_refs: &[node::NodeRef],
-) -> u64 {
+fn step_all(start: u32, goal: u32, directions: &[Direction], nodes: &[Node]) -> u64 {
     let goals_index = nodes
         .iter()
         .filter(|n| n.match_name(goal))
@@ -132,8 +128,8 @@ fn step_all(
 
         next_nodes.iter_mut().for_each(|n| {
             *n = match direction {
-                Direction::Left => &nodes_refs[n.left],
-                Direction::Right => &nodes_refs[n.right],
+                Direction::Left => &nodes[n.left].node_ref,
+                Direction::Right => &nodes[n.right].node_ref,
             };
         });
 
