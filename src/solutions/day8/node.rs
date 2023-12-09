@@ -16,7 +16,7 @@ pub struct NodeRef {
 impl Node {
     pub fn from_line(input: &str) -> Self {
         let mut parts = input.split(" = ");
-        let name = encode_string(parts.next().unwrap());
+        let name = encode_string(parts.next().unwrap().trim());
         let to_parse = parts.next().unwrap();
         let (left_string, right_string) = to_parse.split_once(", ").expect("Invalid input");
         let left_string = encode_string(&left_string[1..]);
@@ -51,17 +51,26 @@ impl Node {
 /// "A" -> FFFF01
 pub fn encode_string(input: &str) -> u32 {
     let mut encoded_value: u32 = 0;
-    let mut bytes = input.bytes().map(|c| c - b'A' + 1).collect::<Vec<_>>();
+    let mut bytes = input
+        .trim()
+        .bytes()
+        .map(|c| {
+            if c.is_ascii_uppercase() {
+                c - b'A' + 1
+            } else {
+                c - b'0' + 30
+            }
+        })
+        .collect::<Vec<_>>();
     if input.len() < 3 {
         for _ in 0..(3 - input.len()) {
             bytes.insert(0, 0xFF);
         }
     }
 
-    for (index, ascii_code) in bytes.into_iter().enumerate() {
-        let index = index as u32;
-        let offset = (index * 0x100) + ascii_code as u32;
-        encoded_value |= offset << (24 - index * 8);
+    for ascii_code in bytes.into_iter() {
+        encoded_value |= ascii_code as u32;
+        encoded_value <<= 8;
     }
     encoded_value >>= 8;
     encoded_value
@@ -79,7 +88,11 @@ fn decode_string(input: u32) -> String {
     while raw_input > 0 {
         let offset = (raw_input & 0xFF) as u8;
         if offset != 0xFF {
-            let ascii_code = offset + b'A' - 1;
+            let ascii_code = if offset >= 30 {
+                offset + b'0' - 30
+            } else {
+                offset + b'A' - 1
+            };
             decoded_chars.push(ascii_code as char);
         }
         raw_input >>= 8;
@@ -134,11 +147,11 @@ mod tests {
 
     #[test]
     fn test_match_code() {
-        assert!(!match_code(0x010101, 0xFFFF09));
         assert!(match_code(0x010101, 0xFFFF01));
-        assert!(!match_code(0x010101, 0xFFFF00));
         assert!(match_code(0x010909, 0xFF0909));
-        assert!(!match_code(0x010909, 0xFF0900));
         assert!(match_code(0x010909, 0x010909));
+        assert!(!match_code(0x010101, 0xFFFF02));
+        assert!(!match_code(0x010101, 0xFFFF09));
+        assert!(!match_code(0x010909, 0xFF0901));
     }
 }
