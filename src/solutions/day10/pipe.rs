@@ -64,7 +64,7 @@ impl Pipe {
     }
 
     pub fn next_direction(&self, previous_direction: Direction) -> Direction {
-        let next = match &self {
+        match &self {
             Pipe::Vertical => match previous_direction {
                 Direction::Up => Direction::Up,
                 Direction::Down => Direction::Down,
@@ -96,9 +96,7 @@ impl Pipe {
                 _ => panic!("{:?} -> {}", &self, previous_direction),
             },
             _ => panic!("{} -> {}", &self, previous_direction),
-        };
-        // println!("{} -> {} -> {}", previous_direction, &self, next);
-        next
+        }
     }
 }
 
